@@ -59,6 +59,11 @@ func (lk *Lock) Acquire() {
 				version = v
 				break
 			}
+		case rpc.ErrMaybe:
+			value, _, _ := lk.ck.Get(lk.L)
+			if value == lk.ID {
+				return
+			}
 		default:
 			log.Panic("error not considered")
 		}
@@ -70,13 +75,14 @@ func (lk *Lock) Release() {
 	// Your code here
 	value, version, err := lk.ck.Get(lk.L)
 	if value != lk.ID {
+		log.Panic("error")
 		//lock not acquired by this lock
 		return
 	}
 	if err == rpc.ErrNoKey {
+		log.Panic("error")
 		//lock not acquired by this lock
 		return
 	}
-	lk.ck.Put(lk.L, "", version)
-
+	err = lk.ck.Put(lk.L, "", version)
 }
